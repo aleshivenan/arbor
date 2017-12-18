@@ -29,23 +29,28 @@ struct cl_options {
     // Network type (default is rgraph):
     bool all_to_all = false;
     bool ring = false;
+    bool my_first_recipe = false;
+    bool single_cell_recipe = true;
+
+    double my_first_recipe_parameter = 0.0;
+
 
     // Simulation running parameters:
     double tfinal = 100.;
     double dt = 0.025;
-    bool bin_regular = false; // False => use 'following' instead of 'regular'.
+    bool bin_regular = true; // False => use 'following' instead of 'regular'.
     double bin_dt = 0.0025;   // 0 => no binning.
 
     // Probe/sampling specification.
     double sample_dt = 0.1;
-    bool probe_soma_only = false;
-    double probe_ratio = 0;  // Proportion of cells to probe.
+    bool probe_soma_only = false; //Default was false
+    double probe_ratio = 1;  // Proportion of cells to probe. //tried changing
     std::string trace_prefix = "trace_";
     util::optional<unsigned> trace_max_gid; // Only make traces up to this gid.
-    std::string trace_format = "json"; // Support only 'json' and 'csv'.
+    std::string trace_format = "csv"; // Support only 'json' and 'csv'.
 
     // Parameters for spike output.
-    bool spike_file_output = false;
+    bool spike_file_output = true;
     bool single_file_per_rank = false;
     bool over_write = true;
     std::string output_path = "./";

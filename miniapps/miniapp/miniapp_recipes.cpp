@@ -3,9 +3,10 @@
 #include <vector>
 #include <utility>
 
+#include <iostream>
+
 #include <cell.hpp>
 #include <dss_cell_description.hpp>
-#include <event_generator.hpp>
 #include <rss_cell.hpp>
 #include <morphology.hpp>
 #include <util/debug.hpp>
@@ -44,7 +45,7 @@ cell make_basic_cell(
     }
 
     cell.soma()->add_mechanism("hh");
-    cell.add_detector({0,0}, 20);
+    cell.add_detector({0,0}, 20); //location, threshold
 
     auto distribution = std::uniform_real_distribution<float>(0.f, 1.0f);
 
@@ -83,19 +84,17 @@ public:
     }
 
     cell_size_type num_cells() const override {
-        return ncell_ + 1;  // We automatically add a fake cell to each recipe!
+        return ncell_ + 2;  // We automatically add two fake cells to each recipe!
     }
 
     util::unique_any get_cell_description(cell_gid_type i) const override {
         // The last 'cell' is a spike source cell. Either a regular spiking
         // or a spikes from file.
-        if (i == ncell_) {
-            if (param_.input_spike_path) {
-                auto spike_times = io::get_parsed_spike_times_from_path(param_.input_spike_path.get());
-                return util::unique_any(dss_cell_description(spike_times));
-            }
-
-            return util::unique_any(rss_cell{0.0, 0.1, 0.1});
+        if (i == 1){
+            return util::unique_any(rss_cell{200.0, 100.0, 500.0});
+        }
+        if (i == 2){
+            return util::unique_any(rss_cell{500.0, 50.0, 1000.0});
         }
 
         auto gen = std::mt19937(i); // TODO: replace this with hashing generator...
@@ -146,11 +145,7 @@ public:
 
     cell_kind get_cell_kind(cell_gid_type i) const override {
         // The last 'cell' is a rss_cell with one spike at t=0
-        if (i == ncell_) {
-            if (param_.input_spike_path) {
-                return cell_kind::data_spike_source;
-            }
-
+        if (i>0){
             return cell_kind::regular_spike_source;
         }
         return cell_kind::cable1d_neuron;
@@ -174,10 +169,6 @@ public:
             cell_size_type np = pdist_.all_segments? get_morphology(i).components(): 1;
             return np*(pdist_.membrane_voltage+pdist_.membrane_current);
         }
-    }
-
-    std::vector<event_generator_ptr> event_generators(cell_gid_type) const override {
-        return {};
     }
 
 protected:
@@ -359,6 +350,113 @@ std::unique_ptr<recipe> make_basic_kgraph_recipe(
         probe_distribution pdist)
 {
     return std::unique_ptr<recipe>(new basic_kgraph_recipe(ncell, param, pdist));
+}
+
+class my_first_recipe : public basic_cell_recipe {
+public:
+    my_first_recipe(cell_gid_type ncell,
+        basic_recipe_param param,
+        probe_distribution pdist = probe_distribution{}) :
+        basic_cell_recipe(ncell, std::move(param), std::move(pdist))
+    {
+        // Cells are not allowed to connect to themselves; hence there must be least two cells
+        // to build a connected network.
+        if (ncell<2) {
+            throw std::runtime_error("A randomly connected network must have at least 2 cells.");
+        }
+    }
+
+    std::vector<cell_connection> connections_on(cell_gid_type i) const override {
+        std::vector<cell_connection> conns;
+
+        // The rss_cell does not have inputs
+        if (i == ncell_) {
+            std::cout << "We are in 'My first recipe (tm)" << std::endl;
+
+            std::cout << "We have retrieved my_first_recipe_parameter from config: "
+                << param_.my_first_recipe_parameter << std::endl;
+            return conns;
+        }
+        auto conn_param_gen = std::mt19937(i); // TODO: replace this with hashing generator...
+        auto source_gen = std::mt19937(i * 123 + 457); // ditto
+
+        std::uniform_int_distribution<cell_gid_type> source_distribution(0, ncell_ - 2);
+
+        for (unsigned t = 0; t<param_.num_synapses; ++t) {
+            auto source = source_distribution(source_gen);
+            if (source >= i) ++source;
+
+            cell_connection cc = draw_connection_params(conn_param_gen);
+            cc.source = { source, 0 };
+            cc.dest = { i, t };
+            conns.push_back(cc);
+
+            // The rss_cell spikes at t=0, with these connections it looks like
+            // (source % 20) == 0 spikes at that moment.
+            if (source % 20 == 0) {
+                cc.source = { ncell_, 0 };
+                conns.push_back(cc);
+            }
+        }
+	//std::cout << "The list of connections is stored as " << conns;
+        return conns;
+    }
+};
+
+std::unique_ptr<recipe> make_my_first_recipe(
+    cell_gid_type ncell,
+    basic_recipe_param param,
+    probe_distribution pdist)
+{
+    return std::unique_ptr<recipe>(new my_first_recipe(ncell, param, pdist));
+}
+
+
+class single_cell_recipe : public basic_cell_recipe {
+public:
+    single_cell_recipe(cell_gid_type ncell,
+                       basic_recipe_param param,
+                       probe_distribution pdist = probe_distribution{}) :
+        basic_cell_recipe(ncell, std::move(param), std::move(pdist))
+    {
+    //if (ncell != 1){
+      //  throw std::runtime_error("A single cell network can have only 1 cell");
+       // }
+    }
+    std::vector<cell_connection> connections_on(cell_gid_type i) const override {
+        
+        //std::vector<cell_connection> conns;
+        std::cout << "Connections on: " << i << std::endl;
+        std::vector<cell_connection> conns;
+        if (i > 0) {
+            std::cout << "We are in Single cell recipe" << std::endl;
+            
+            //std::cout << "We have retrieved my_first_recipe_parameter from config: "
+                //<< param_.my_first_recipe_parameter << std::endl;
+            return conns;
+        }
+    //deviating very little from the other implementations
+    auto gen = std::mt19937(i);
+    
+for(int j = 0; j<3; j++){
+    cell_connection cc({0,0}, {0,0}, 0.0002*pow(10, j), 2.0);
+    cc.source = {1, 0}; 
+    conns.push_back(cc);
+    cell_connection cc2({0,0},{0,0}, -0.0005, 2.0);
+    cc2.source = {2, 0};
+    conns.push_back(cc2);
+    return conns;
+}
+    
+    }
+};
+
+std::unique_ptr<recipe> make_single_cell_recipe(
+    cell_gid_type ncell,
+    basic_recipe_param param,
+    probe_distribution pdist)
+{
+    return std::unique_ptr<recipe>(new single_cell_recipe(ncell, param, pdist));
 }
 
 } // namespace arb

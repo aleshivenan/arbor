@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <iostream>
 
 #include <cell_group.hpp>
 #include <recipe.hpp>
@@ -29,27 +30,26 @@ public:
 
     void reset() override {
         clear_spikes();
-        for (auto& cell : cells_) {
-            cell.step = 0;
-        }
+        time_ = 0;
     }
 
     void set_binning_policy(binning_kind policy, time_type bin_interval) override {}
 
     void advance(epoch ep, time_type dt, const event_lane_subrange& events) override {
         for (auto& cell: cells_) {
-
+            auto t = std::max(cell.start_time, cell.t);
             auto t_end = std::min(cell.stop_time, ep.tfinal);
-            auto t = cell.start_time + cell.step*cell.period;
 
             while (t < t_end) {
                 spikes_.push_back({{cell.gid, 0}, t});
-
-                // Increasing time with period time step has float issues
-                ++cell.step;
-                t = cell.start_time + cell.step*cell.period;
+                std::cout << t;
+                t += cell.period;
+                std::cout << "+" << cell.period << "=" << t << std::endl;
             }
+            //store the cell specific time
+            cell.t = t;
         }
+        time_ = ep.tfinal;
     }
 
     const std::vector<spike>& spikes() const override {
@@ -76,15 +76,14 @@ private:
         {}
 
         cell_gid_type gid;
-
-        // We do not store the time but a count of the number of step since start
-        // of cell. This prevents float problems at high number.
-        std::size_t step;
+        time_type t;
     };
 
     // RSS cell descriptions.
     std::vector<rss_info> cells_;
 
+    // Simulation time for all RSS cells in the group.
+    time_type time_;
 
     // Spikes that are generated.
     std::vector<spike> spikes_;
