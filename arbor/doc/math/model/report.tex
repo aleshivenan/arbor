@@ -1,0 +1,114 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Stylish Article
+% LaTeX Template
+% Version 2.0 (13/4/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Mathias Legrand (legrand.mathias@gmail.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[fleqn,10pt]{SelfArx} % Document font size and equations flushed left
+
+\usepackage{xspace}
+\usepackage{color}
+\usepackage{bm} % bold math
+
+%----------------------------------------------------------------------------------------
+%   COLUMNS
+%----------------------------------------------------------------------------------------
+
+\setlength{\columnsep}{0.55cm} % Distance between the two columns of text
+\setlength{\fboxrule}{0.75pt} % Width of the border around the abstract
+
+%----------------------------------------------------------------------------------------
+%   COLORS
+%----------------------------------------------------------------------------------------
+
+\definecolor{color1}{RGB}{0,0,90} % Color of the article title and sections
+\definecolor{color2}{RGB}{0,20,20} % Color of the boxes behind the abstract and headings
+
+%----------------------------------------------------------------------------------------
+%   PLOTTING and DRAWING
+%----------------------------------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{shapes,arrows,backgrounds,fit,shapes.geometric,calc}
+\usetikzlibrary{pgfplots.groupplots}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+
+%----------------------------------------------------------------------------------------
+%   HYPERLINKS
+%----------------------------------------------------------------------------------------
+
+\usepackage{hyperref} % Required for hyperlinks
+\hypersetup{hidelinks,colorlinks,breaklinks=true,urlcolor=color2,citecolor=color1,linkcolor=color1,bookmarksopen=false,pdftitle={Title},pdfauthor={Author}}
+
+%----------------------------------------------------------------------------------------
+%   CUSTOM COMMANDS
+%----------------------------------------------------------------------------------------
+
+\newcommand{\todo}[1]{\textbf{\textcolor{blue}{TODO: #1}}} % add a comment to the article
+\newcommand{\note}[1]{\textbf{\textcolor{red}{NOTE: #1}}} % add a note to the article
+
+\newcommand{\tbl}[1]{\textbf{Table \ref{#1}}\xspace}
+\newcommand{\fig}[1]{\textbf{Figure \ref{#1}}\xspace}
+\newcommand{\eq}[1]{\textbf{(\ref{#1})}\xspace}
+\newcommand{\ssec}[1]{\textbf{\S\ref{#1}}\xspace}
+
+\newcommand{\deriv}[1]{~\text{d}{#1}}
+\newcommand{\pder}[2]{\frac{\partial{#1}}{\partial{#2}}}
+\newcommand{\dder}[2]{\frac{\deriv{#1}}{\deriv{#2}}}
+\newcommand{\vv}[1]{\bm{#1}\xspace}
+\newcommand{\cmi}{c_{m,i}}
+
+\newcommand{\unit}[1]{\left[{#1}\right]}
+\newcommand{\txtunit}[1]{$\left[{#1}\right]$}
+
+%----------------------------------------------------------------------------------------
+%   ARTICLE INFORMATION
+%----------------------------------------------------------------------------------------
+
+\JournalInfo{CSCS}      % name of "journal" on upper right corner
+\Archive{working document}
+
+\PaperTitle{Cable Equation}
+
+%===============================================================================
+
+\begin{document}
+
+\flushbottom    % Makes all text pages the same height
+\maketitle      % Print the title and authors
+\tableofcontents
+
+\thispagestyle{empty} % Removes page numbering from the first page
+
+%------------------------------------------------
+\section{Formulation}
+\input{formulation.tex}
+
+\section{Appendix}
+\input{appendix.tex}
+
+\section{Symbols and Units}
+\input{symbols.tex}
+
+%*************************************************
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+%*************************************************
+
+\end{document}
+
